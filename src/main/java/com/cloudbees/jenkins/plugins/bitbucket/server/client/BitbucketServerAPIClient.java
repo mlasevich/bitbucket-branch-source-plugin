@@ -124,24 +124,6 @@ import static java.util.Objects.requireNonNull;
  */
 public class BitbucketServerAPIClient implements BitbucketApi {
 
-    /**
-     * Make available commit informations in a lazy way.
-     *
-     * @author Nikolas Falco
-     */
-    private class CommitClosure implements Callable<BitbucketCommit> {
-        private final String hash;
-
-        public CommitClosure(@NonNull String hash) {
-            this.hash = hash;
-        }
-
-        @Override
-        public BitbucketCommit call() throws Exception {
-            return resolveCommit(hash);
-        }
-    }
-
     // Max avatar image length in bytes
     private static final int MAX_AVATAR_SIZE = 16384;
 
@@ -168,6 +150,24 @@ public class BitbucketServerAPIClient implements BitbucketApi {
 
     private static final String API_COMMIT_STATUS_PATH = "/rest/build-status/1.0/commits{/hash}";
     private static final Integer DEFAULT_PAGE_LIMIT = 200;
+
+    /**
+     * Make available commit informations in a lazy way.
+     *
+     * @author Nikolas Falco
+     */
+    private class CommitClosure implements Callable<BitbucketCommit> {
+        private final String hash;
+
+        public CommitClosure(@NonNull String hash) {
+            this.hash = hash;
+        }
+
+        @Override
+        public BitbucketCommit call() throws Exception {
+            return resolveCommit(hash);
+        }
+    }
 
     /**
      * Repository owner.

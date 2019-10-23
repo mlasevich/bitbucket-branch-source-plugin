@@ -124,6 +124,32 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class BitbucketCloudApiClient implements BitbucketApi {
 
+    private static final Logger LOGGER = Logger.getLogger(BitbucketCloudApiClient.class.getName());
+    private static final HttpHost API_HOST = HttpHost.create("https://api.bitbucket.org");
+    private static final String V2_API_BASE_URL = "https://api.bitbucket.org/2.0/repositories";
+    private static final String V2_TEAMS_API_BASE_URL = "https://api.bitbucket.org/2.0/teams";
+    private static final String REPO_URL_TEMPLATE = V2_API_BASE_URL + "{/owner,repo}";
+    private static final String AVATAR_URL = BitbucketCloudEndpoint.SERVER_URL+ "rest/api/1.0/{/owner}/projects/{repo}/avatar.png";
+    private static final int API_RATE_LIMIT_CODE = 429;
+    private static final PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+    private CloseableHttpClient client;
+    private HttpClientContext context;
+    private final String owner;
+    private final String repositoryName;
+    private final boolean enableCache;
+    private final BitbucketAuthenticator authenticator;
+    private static final Cache<String, BitbucketTeam> cachedTeam = new Cache<>(6, HOURS);
+    private static final Cache<String, AvatarImage> cachedAvatar = new Cache<>(6, HOURS);
+    private static final Cache<String, List<BitbucketCloudRepository>> cachedRepositories = new Cache<>(3, HOURS);
+    private transient BitbucketRepository cachedRepository;
+    private transient String cachedDefaultBranch;
+
+    static {
+        connectionManager.setDefaultMaxPerRoute(20);
+        connectionManager.setMaxTotal(22);
+        connectionManager.setSocketConfig(API_HOST, SocketConfig.custom().setSoTimeout(60 * 1000).build());
+    }
+
     /**
      * Make available commit informations in a lazy way.
      *
@@ -142,30 +168,6 @@ public class BitbucketCloudApiClient implements BitbucketApi {
         }
     }
 
-    private static final Logger LOGGER = Logger.getLogger(BitbucketCloudApiClient.class.getName());
-    private static final HttpHost API_HOST = HttpHost.create("https://api.bitbucket.org");
-    private static final String V2_API_BASE_URL = "https://api.bitbucket.org/2.0/repositories";
-    private static final String V2_TEAMS_API_BASE_URL = "https://api.bitbucket.org/2.0/teams";
-    private static final String REPO_URL_TEMPLATE = V2_API_BASE_URL + "{/owner,repo}";
-    private static final String AVATAR_URL = BitbucketCloudEndpoint.SERVER_URL+ "rest/api/1.0/{/owner}/projects/{repo}/avatar.png";
-    private static final int API_RATE_LIMIT_CODE = 429;
-    private static final PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-    private CloseableHttpClient client;
-    private HttpClientContext context;
-    private final String owner;
-    private final String repositoryName;
-    private final boolean enableCache;
-    private final BitbucketAuthenticator authenticator;
-    static {
-        connectionManager.setDefaultMaxPerRoute(20);
-        connectionManager.setMaxTotal(22);
-        connectionManager.setSocketConfig(API_HOST, SocketConfig.custom().setSoTimeout(60 * 1000).build());
-    }
-    private static final Cache<String, BitbucketTeam> cachedTeam = new Cache<>(6, HOURS);
-    private static final Cache<String, AvatarImage> cachedAvatar = new Cache<>(6, HOURS);
-    private static final Cache<String, List<BitbucketCloudRepository>> cachedRepositories = new Cache<>(3, HOURS);
-    private transient BitbucketRepository cachedRepository;
-    private transient String cachedDefaultBranch;
 
     public static List<String> stats() {
         List<String> stats = new ArrayList<>();
