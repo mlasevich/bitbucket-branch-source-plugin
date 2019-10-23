@@ -909,7 +909,7 @@ public class BitbucketServerAPIClient implements BitbucketApi {
     }
 
     private void setClientProxyParams(String host, HttpClientBuilder builder) {
-        Jenkins jenkins = Jenkins.getInstance();
+        Jenkins jenkins = Jenkins.get();
         ProxyConfiguration proxyConfig = null;
         if (jenkins != null) {
             proxyConfig = jenkins.proxy;
