@@ -24,14 +24,10 @@
 
 package com.cloudbees.jenkins.plugins.bitbucket;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import java.util.Objects;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import jenkins.authentication.tokens.api.AuthenticationTokens;
-import jenkins.scm.api.metadata.AvatarMetadataAction;
 
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApi;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApiFactory;
@@ -40,13 +36,16 @@ import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCache;
 import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 
+import jenkins.authentication.tokens.api.AuthenticationTokens;
+import jenkins.scm.api.metadata.AvatarMetadataAction;
+
 
 /**
  * Invisible property that retains information about Bitbucket team.
  */
 public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -56,9 +55,9 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
     private static final Logger LOGGER = Logger.getLogger(BitbucketTeamMetadataAction.class.getName());
 
     private final BitbucketAvatarCacheSource avatarSource;
-    
+
     public BitbucketTeamMetadataAction(String serverUrl, StandardCredentials credentials, String team) {
-        avatarSource = new BitbucketAvatarCacheSource(serverUrl, credentials, team);;
+        avatarSource = new BitbucketAvatarCacheSource(serverUrl, credentials, team);
     }
 
     public static class BitbucketAvatarCacheSource implements AvatarCacheSource {

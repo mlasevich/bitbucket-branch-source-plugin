@@ -502,7 +502,7 @@ public class AvatarCache implements UnprotectedRootAction {
 
         /**
          * Check if this entry is fetch-able
-         * 
+         *
          * @return
          */
         public boolean canFetch() {

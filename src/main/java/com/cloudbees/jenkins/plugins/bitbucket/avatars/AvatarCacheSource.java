@@ -47,9 +47,9 @@ public interface AvatarCacheSource {
     }
 
     /**
-     * 
+     *
      * Fetch image from source
-     * 
+     *
      * @return AvatarImage object
      */
     public AvatarImage fetch();
@@ -63,7 +63,7 @@ public interface AvatarCacheSource {
 
     /**
      * Make sure we can fetch
-     * 
+     *
      * @return true if can fetch
      */
     public boolean canFetch();
