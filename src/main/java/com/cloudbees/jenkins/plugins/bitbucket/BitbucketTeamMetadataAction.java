@@ -24,10 +24,6 @@
 
 package com.cloudbees.jenkins.plugins.bitbucket;
 
-import java.io.IOException;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApi;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApiFactory;
@@ -35,7 +31,10 @@ import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketAuthenticator;
 import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCache;
 import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
-
+import java.io.IOException;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jenkins.authentication.tokens.api.AuthenticationTokens;
 import jenkins.scm.api.metadata.AvatarMetadataAction;
 

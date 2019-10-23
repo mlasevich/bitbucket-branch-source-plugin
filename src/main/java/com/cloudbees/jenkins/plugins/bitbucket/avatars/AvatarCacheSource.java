@@ -26,7 +26,7 @@ package com.cloudbees.jenkins.plugins.bitbucket.avatars;
 import java.awt.image.BufferedImage;
 
 /**
- * 
+ *
  * Interface for Avatar Cache Item Source
  *
  */
@@ -56,7 +56,7 @@ public interface AvatarCacheSource {
 
     /**
      * Get unique hashKey for this item
-     * 
+     *
      * @return AvatarImage object
      */
     public String hashKey();

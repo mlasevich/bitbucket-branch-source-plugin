@@ -23,11 +23,22 @@
  */
 package com.cloudbees.jenkins.plugins.bitbucket.avatars;
 
-import static java.awt.RenderingHints.KEY_ALPHA_INTERPOLATION;
-import static java.awt.RenderingHints.KEY_INTERPOLATION;
-import static java.awt.RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY;
-import static java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
+
+
+
+import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource.AvatarImage;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import hudson.Extension;
+import hudson.ExtensionList;
+import hudson.Util;
+import hudson.model.RootAction;
+import hudson.model.UnprotectedRootAction;
+import hudson.util.DaemonThreadFactory;
+import hudson.util.HttpResponses;
+import hudson.util.NamingThreadFactory;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -50,31 +61,20 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
-
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource.AvatarImage;
-
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
-import hudson.Extension;
-import hudson.ExtensionList;
-import hudson.Util;
-import hudson.model.RootAction;
-import hudson.model.UnprotectedRootAction;
-import hudson.util.DaemonThreadFactory;
-import hudson.util.HttpResponses;
-import hudson.util.NamingThreadFactory;
-import jenkins.model.Jenkins;
+import static java.awt.RenderingHints.KEY_ALPHA_INTERPOLATION;
+import static java.awt.RenderingHints.KEY_INTERPOLATION;
+import static java.awt.RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
 /**
  * An avatar cache that will serve URLs that have been recently registered
