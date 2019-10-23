@@ -24,45 +24,12 @@
  */
 package com.cloudbees.jenkins.plugins.bitbucket.client;
 
-import com.cloudbees.jenkins.plugins.bitbucket.JsonParser;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApi;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketAuthenticator;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketBuildStatus;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketCommit;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketException;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketPullRequest;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRepository;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRepositoryProtocol;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRepositoryType;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRequestException;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketTeam;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketWebHook;
-import com.cloudbees.jenkins.plugins.bitbucket.api.credentials.BitbucketUsernamePasswordAuthenticator;
-import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource.AvatarImage;
-import com.cloudbees.jenkins.plugins.bitbucket.client.branch.BitbucketCloudBranch;
-import com.cloudbees.jenkins.plugins.bitbucket.client.branch.BitbucketCloudCommit;
-import com.cloudbees.jenkins.plugins.bitbucket.client.pullrequest.BitbucketPullRequestCommit;
-import com.cloudbees.jenkins.plugins.bitbucket.client.pullrequest.BitbucketPullRequestCommits;
-import com.cloudbees.jenkins.plugins.bitbucket.client.pullrequest.BitbucketPullRequestValue;
-import com.cloudbees.jenkins.plugins.bitbucket.client.pullrequest.BitbucketPullRequests;
-import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketCloudRepository;
-import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketCloudTeam;
-import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketRepositoryHook;
-import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketRepositoryHooks;
-import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketRepositorySource;
-import com.cloudbees.jenkins.plugins.bitbucket.client.repository.PaginatedBitbucketRepository;
-import com.cloudbees.jenkins.plugins.bitbucket.client.repository.UserRoleInRepository;
-import com.cloudbees.jenkins.plugins.bitbucket.endpoints.BitbucketCloudEndpoint;
-import com.cloudbees.jenkins.plugins.bitbucket.filesystem.BitbucketSCMFile;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.damnhandy.uri.template.UriTemplate;
-import com.damnhandy.uri.template.impl.Operator;
-import com.fasterxml.jackson.core.type.TypeReference;
-import edu.umd.cs.findbugs.annotations.CheckForNull;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import hudson.ProxyConfiguration;
-import hudson.Util;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -80,9 +47,9 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jenkins.model.Jenkins;
-import jenkins.scm.api.SCMFile;
+
 import javax.imageio.ImageIO;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
@@ -117,12 +84,47 @@ import org.apache.http.util.EntityUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.ProtectedExternally;
 
-import static java.util.concurrent.TimeUnit.HOURS;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import com.cloudbees.jenkins.plugins.bitbucket.JsonParser;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApi;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketAuthenticator;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketBuildStatus;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketCommit;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketException;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketPullRequest;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRepository;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRepositoryProtocol;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRepositoryType;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRequestException;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketTeam;
+import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketWebHook;
+import com.cloudbees.jenkins.plugins.bitbucket.api.credentials.BitbucketUsernamePasswordAuthenticator;
+import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource.AvatarImage;
+import com.cloudbees.jenkins.plugins.bitbucket.client.branch.BitbucketCloudBranch;
+import com.cloudbees.jenkins.plugins.bitbucket.client.branch.BitbucketCloudCommit;
+import com.cloudbees.jenkins.plugins.bitbucket.client.pullrequest.BitbucketPullRequestCommit;
+import com.cloudbees.jenkins.plugins.bitbucket.client.pullrequest.BitbucketPullRequestCommits;
+import com.cloudbees.jenkins.plugins.bitbucket.client.pullrequest.BitbucketPullRequestValue;
+import com.cloudbees.jenkins.plugins.bitbucket.client.pullrequest.BitbucketPullRequests;
+import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketCloudRepository;
+import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketCloudTeam;
+import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketRepositoryHook;
+import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketRepositoryHooks;
+import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketRepositorySource;
+import com.cloudbees.jenkins.plugins.bitbucket.client.repository.PaginatedBitbucketRepository;
+import com.cloudbees.jenkins.plugins.bitbucket.client.repository.UserRoleInRepository;
+import com.cloudbees.jenkins.plugins.bitbucket.endpoints.BitbucketCloudEndpoint;
+import com.cloudbees.jenkins.plugins.bitbucket.filesystem.BitbucketSCMFile;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.damnhandy.uri.template.UriTemplate;
+import com.damnhandy.uri.template.impl.Operator;
+import com.fasterxml.jackson.core.type.TypeReference;
 
-import java.awt.image.BufferedImage;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.ProxyConfiguration;
+import hudson.Util;
+import jenkins.model.Jenkins;
+import jenkins.scm.api.SCMFile;
 
 public class BitbucketCloudApiClient implements BitbucketApi {
 
