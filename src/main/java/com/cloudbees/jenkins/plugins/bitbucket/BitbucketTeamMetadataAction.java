@@ -32,6 +32,7 @@ import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCache;
 import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +60,8 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
         avatarSource = new BitbucketAvatarCacheSource(serverUrl, credentials, team);
     }
 
-    public static class BitbucketAvatarCacheSource implements AvatarCacheSource {
+    public static class BitbucketAvatarCacheSource implements AvatarCacheSource, Serializable {
+        private static final long serialVersionUID = 1L;
         private final String serverUrl;
         private final StandardCredentials credentials;
         private final String repoOwner;
@@ -95,6 +97,14 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
         public boolean canFetch() {
             return (serverUrl != null && repoOwner != null && !serverUrl.trim().isEmpty()
                     && !repoOwner.trim().isEmpty());
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(hashKey());
         }
 
         @Override
