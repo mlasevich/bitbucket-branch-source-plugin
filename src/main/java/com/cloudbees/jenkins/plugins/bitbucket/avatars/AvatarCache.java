@@ -60,7 +60,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -84,10 +83,6 @@ import static java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC;
  */
 @Extension
 public class AvatarCache implements UnprotectedRootAction {
-    /**
-     * Our logger.
-     */
-    private static final Logger LOGGER = Logger.getLogger(AvatarCache.class.getName());
 
     /**
      * URI For this action
@@ -97,7 +92,7 @@ public class AvatarCache implements UnprotectedRootAction {
     /**
      * Maximum concurrent requests to fetch images.
      */
-    /* package */ static final int CONCURRENT_REQUEST_LIMIT = 4;
+    private static final int CONCURRENT_REQUEST_LIMIT = 4;
     /**
      * The cache of entries. Unused entries will be removed over time.
      */
@@ -105,7 +100,7 @@ public class AvatarCache implements UnprotectedRootAction {
     /**
      * A background thread pool to refresh images.
      */
-    /* package */ final ThreadPoolExecutor service = new ThreadPoolExecutor(CONCURRENT_REQUEST_LIMIT,
+    private final ThreadPoolExecutor service = new ThreadPoolExecutor(CONCURRENT_REQUEST_LIMIT,
             CONCURRENT_REQUEST_LIMIT, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
             new NamingThreadFactory(new DaemonThreadFactory(), getClass().getName()));
     /**
@@ -179,6 +174,7 @@ public class AvatarCache implements UnprotectedRootAction {
      */
     @NonNull
     private static BufferedImage scaleImage(@NonNull BufferedImage src, int size) {
+        BufferedImage imageSrc = src;
         int newWidth;
         int newHeight;
         if (src.getWidth() > src.getHeight()) {
@@ -221,9 +217,9 @@ public class AvatarCache implements UnprotectedRootAction {
                     g.dispose();
                 }
                 if (flushSrc) {
-                    src.flush();
+                    imageSrc.flush();
                 }
-                src = tmp;
+                imageSrc = tmp;
                 flushSrc = true;
             }
         }
@@ -234,16 +230,16 @@ public class AvatarCache implements UnprotectedRootAction {
             // headless
             g.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
             g.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
-            g.scale(((double) newWidth) / src.getWidth(), ((double) newHeight) / src.getHeight());
-            g.drawImage(src, (size - newWidth) / 2, (size - newHeight) / 2, null);
+            g.scale(((double) newWidth) / imageSrc.getWidth(), ((double) newHeight) / imageSrc.getHeight());
+            g.drawImage(imageSrc, (size - newWidth) / 2, (size - newHeight) / 2, null);
         } finally {
             g.dispose();
         }
         if (flushSrc) {
-            src.flush();
+            imageSrc.flush();
         }
-        src = tmp;
-        return src;
+        imageSrc = tmp;
+        return imageSrc;
     }
 
     /**
@@ -318,10 +314,10 @@ public class AvatarCache implements UnprotectedRootAction {
      * Serves the cached image.
      *
      * @param req  the request.
-     * @param size the requested size (defaults to {@code 48x48} if unspecified).
+     * @param requestedSize the requested size (defaults to {@code 48x48} if unspecified).
      * @return the response.
      */
-    public HttpResponse doDynamic(StaplerRequest req, @QueryParameter String size) {
+    public HttpResponse doDynamic(StaplerRequest req, @QueryParameter String requestedSize) {
         if (StringUtils.isBlank(req.getRestOfPath())) {
             return HttpResponses.notFound();
         }
@@ -330,7 +326,7 @@ public class AvatarCache implements UnprotectedRootAction {
             return HttpResponses.notFound();
         }
         key = StringUtils.removeEnd(key, ".png");
-        size = StringUtils.defaultIfBlank(size, "48x48");
+        String size = StringUtils.defaultIfBlank(requestedSize, "48x48");
         int targetSize = 48;
         int index = size.toLowerCase(Locale.ENGLISH).indexOf('x');
         // we will only resize images in the 16x16 - 128x128 range
