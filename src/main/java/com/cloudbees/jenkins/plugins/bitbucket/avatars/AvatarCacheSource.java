@@ -31,7 +31,6 @@ import java.awt.image.BufferedImage;
  *
  */
 public interface AvatarCacheSource {
-
     /**
      * Holds Image and lastModified date
      */
@@ -68,5 +67,4 @@ public interface AvatarCacheSource {
      * @return true if can fetch
      */
     public boolean canFetch();
-
 }

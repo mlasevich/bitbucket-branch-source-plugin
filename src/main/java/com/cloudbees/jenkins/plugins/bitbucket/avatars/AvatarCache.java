@@ -602,7 +602,6 @@ public class AvatarCache implements UnprotectedRootAction {
             rsp.setContentLength(bytes.length);
             rsp.getOutputStream().write(bytes);
         }
-
     }
 
     /**

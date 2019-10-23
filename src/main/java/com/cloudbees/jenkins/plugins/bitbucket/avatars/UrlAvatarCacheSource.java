@@ -124,5 +124,4 @@ public class UrlAvatarCacheSource implements AvatarCacheSource {
         // TODO Auto-generated method stub
         return this.url;
     }
-
 }
