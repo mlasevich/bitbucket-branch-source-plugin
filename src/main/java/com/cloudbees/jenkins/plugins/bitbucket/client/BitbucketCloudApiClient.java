@@ -150,24 +150,6 @@ public class BitbucketCloudApiClient implements BitbucketApi {
         connectionManager.setSocketConfig(API_HOST, SocketConfig.custom().setSoTimeout(60 * 1000).build());
     }
 
-    /**
-     * Make available commit informations in a lazy way.
-     *
-     * @author Nikolas Falco
-     */
-    private class CommitClosure implements Callable<BitbucketCommit> {
-        private final String hash;
-
-        public CommitClosure(@NonNull String hash) {
-            this.hash = hash;
-        }
-
-        @Override
-        public BitbucketCommit call() throws Exception {
-            return resolveCommit(hash);
-        }
-    }
-
 
     public static List<String> stats() {
         List<String> stats = new ArrayList<>();
@@ -317,6 +299,24 @@ public class BitbucketCloudApiClient implements BitbucketApi {
         }
 
         return pullRequests;
+    }
+
+    /**
+     * Make available commit informations in a lazy way.
+     *
+     * @author Nikolas Falco
+     */
+    private class CommitClosure implements Callable<BitbucketCommit> {
+        private final String hash;
+
+        public CommitClosure(@NonNull String hash) {
+            this.hash = hash;
+        }
+
+        @Override
+        public BitbucketCommit call() throws Exception {
+            return resolveCommit(hash);
+        }
     }
 
     private void setupClosureForPRBranch(BitbucketPullRequestValue pullRequest) {
