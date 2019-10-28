@@ -47,4 +47,12 @@ public interface BitbucketTeam {
      * @return the links of the project.
      */
     Map<String,List<BitbucketHref>> getLinks();
+
+    /**
+     * Get Link based on name
+     *
+     * @param name - link type - one of(self, html, avatar)
+     * @return href string if there is one, else null
+     */
+    String getLink(String name);
 }

@@ -26,7 +26,6 @@ package com.cloudbees.jenkins.plugins.bitbucket;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApi;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApiFactory;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketAuthenticator;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketHref;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketRepository;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketTeam;
 import com.cloudbees.jenkins.plugins.bitbucket.client.repository.UserRoleInRepository;
@@ -59,7 +58,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -521,7 +519,7 @@ public class BitbucketSCMNavigator extends SCMNavigator {
             } else {
                 defaultTeamUrl = serverUrl + "/" + team.getName();
             }
-            String teamUrl = StringUtils.defaultIfBlank(getLink(team.getLinks(), "html"), defaultTeamUrl);
+            String teamUrl = StringUtils.defaultIfBlank(team.getLink("html"), defaultTeamUrl);
             String teamDisplayName = StringUtils.defaultIfBlank(team.getDisplayName(), team.getName());
             result.add(new ObjectMetadataAction(
                     teamDisplayName,
@@ -543,18 +541,6 @@ public class BitbucketSCMNavigator extends SCMNavigator {
             listener.getLogger().println("Could not resolve team details");
         }
         return result;
-    }
-
-    private static String getLink(Map<String, List<BitbucketHref>> links, String name) {
-        if (links == null) {
-            return null;
-        }
-        List<BitbucketHref> hrefs = links.get(name);
-        if (hrefs == null || hrefs.isEmpty()) {
-            return null;
-        }
-        BitbucketHref href = hrefs.get(0);
-        return href == null ? null : href.getHref();
     }
 
     @Symbol("bitbucket")
