@@ -71,6 +71,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,6 +133,8 @@ public class BitbucketCloudApiClient implements BitbucketApi {
     private static final String REPO_URL_TEMPLATE = V2_API_BASE_URL + "{/owner,repo}";
     private static final String AVATAR_URL = BitbucketCloudEndpoint.SERVER_URL+ "rest/api/1.0/{/owner}/projects/{repo}/avatar.png";
     private static final int API_RATE_LIMIT_CODE = 429;
+    // Limit images to 16k
+    private static final int MAX_AVATAR_LENGTH = 16384;
     private static final PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
     private CloseableHttpClient client;
     private HttpClientContext context;
@@ -793,9 +797,18 @@ public class BitbucketCloudApiClient implements BitbucketApi {
 
     @Restricted(ProtectedExternally.class)
     protected CloseableHttpResponse executeMethod(HttpRequestBase httpMethod) throws InterruptedException, IOException {
+        return executeMethod(API_HOST, httpMethod);
+    }
 
-        if (authenticator != null) {
-            authenticator.configureRequest(httpMethod);
+    @Restricted(ProtectedExternally.class)
+    protected CloseableHttpResponse executeMethod(HttpHost host, HttpRequestBase httpMethod) throws InterruptedException, IOException {
+
+        HttpClientContext requestContext = null;
+        if (API_HOST.equals(host)) {
+            requestContext = context;
+            if (authenticator != null) {
+                authenticator.configureRequest(httpMethod);
+            }
         }
 
         RequestConfig.Builder requestConfig = RequestConfig.custom();
@@ -804,7 +817,7 @@ public class BitbucketCloudApiClient implements BitbucketApi {
         requestConfig.setSocketTimeout(60 * 1000);
         httpMethod.setConfig(requestConfig.build());
 
-        CloseableHttpResponse response = client.execute(API_HOST, httpMethod, context);
+        CloseableHttpResponse response = client.execute(host, httpMethod, requestContext);
         while (response.getStatusLine().getStatusCode() == API_RATE_LIMIT_CODE) {
             release(httpMethod);
             if (Thread.interrupted()) {
@@ -816,7 +829,7 @@ public class BitbucketCloudApiClient implements BitbucketApi {
              */
             LOGGER.fine("Bitbucket Cloud API rate limit reached, sleeping for 5 sec then retry...");
             Thread.sleep(5000);
-            response = client.execute(API_HOST, httpMethod, context);
+            response = client.execute(host, httpMethod, requestContext);
         }
         return response;
     }
@@ -826,8 +839,23 @@ public class BitbucketCloudApiClient implements BitbucketApi {
      */
     private InputStream getRequestAsInputStream(String path) throws IOException, InterruptedException {
         HttpGet httpget = new HttpGet(path);
+        HttpHost host = null;
+
+        // Extract host from URL, if present
         try {
-            CloseableHttpResponse response =  executeMethod(httpget);
+            URI uri = new URI(path);
+            if (uri.isAbsolute() && ! uri.isOpaque()) {
+                host = HttpHost.create(""+uri.getScheme()+"://"+uri.getAuthority());
+            }
+        } catch (URISyntaxException ex) {
+        }
+        // Use default API Host otherwise
+        if (host == null) {
+            host = API_HOST;
+        }
+
+        try {
+            CloseableHttpResponse response =  executeMethod(host, httpget);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
                 EntityUtils.consume(response.getEntity());
                 response.close();
@@ -858,8 +886,7 @@ public class BitbucketCloudApiClient implements BitbucketApi {
 
     private BufferedImage getImageRequest(String path) throws IOException, InterruptedException {
         try (InputStream inputStream = getRequestAsInputStream(path)) {
-            // Limit images to 16k
-            int length = 16384;
+            int length = MAX_AVATAR_LENGTH;
             BufferedInputStream bis = new BufferedInputStream(inputStream, length);
             BufferedImage image = ImageIO.read(bis);
             return image;
