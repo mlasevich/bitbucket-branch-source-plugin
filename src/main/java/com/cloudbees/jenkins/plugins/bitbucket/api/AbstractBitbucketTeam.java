@@ -30,14 +30,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Shared Code between two team implementations
  */
 public abstract class AbstractBitbucketTeam implements BitbucketTeam {
-
-    private static final Logger LOGGER = Logger.getLogger(AbstractBitbucketTeam.class.getName());
 
     @JsonProperty("username")
     private String name;
