@@ -52,7 +52,6 @@ import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketReposi
 import com.cloudbees.jenkins.plugins.bitbucket.client.repository.BitbucketRepositorySource;
 import com.cloudbees.jenkins.plugins.bitbucket.client.repository.PaginatedBitbucketRepository;
 import com.cloudbees.jenkins.plugins.bitbucket.client.repository.UserRoleInRepository;
-import com.cloudbees.jenkins.plugins.bitbucket.endpoints.BitbucketCloudEndpoint;
 import com.cloudbees.jenkins.plugins.bitbucket.filesystem.BitbucketSCMFile;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.damnhandy.uri.template.UriTemplate;
@@ -131,7 +130,6 @@ public class BitbucketCloudApiClient implements BitbucketApi {
     private static final String V2_API_BASE_URL = "https://api.bitbucket.org/2.0/repositories";
     private static final String V2_TEAMS_API_BASE_URL = "https://api.bitbucket.org/2.0/teams";
     private static final String REPO_URL_TEMPLATE = V2_API_BASE_URL + "{/owner,repo}";
-    private static final String AVATAR_URL = BitbucketCloudEndpoint.SERVER_URL+ "rest/api/1.0/{/owner}/projects/{repo}/avatar.png";
     private static final int API_RATE_LIMIT_CODE = 429;
     // Limit images to 16k
     private static final int MAX_AVATAR_LENGTH = 16384;
@@ -681,27 +679,40 @@ public class BitbucketCloudApiClient implements BitbucketApi {
     @Override
     @CheckForNull
     public AvatarImage getTeamAvatar() throws IOException, InterruptedException {
-        final String url = UriTemplate.fromTemplate(AVATAR_URL).set("owner", owner).set("repo", owner).expand();
-
-        Callable<AvatarImage> request = () -> {
-            try {
-                BufferedImage avatar = getImageRequest(url);
-                return new AvatarImage(avatar, System.currentTimeMillis());
-            } catch (FileNotFoundException e) {
-            } catch (IOException e) {
-                throw new IOException("I/O error when parsing response from URL: " + url, e);
-            }
-            return null;
-        };
         try {
-            if (enableCache) {
-                return cachedAvatar.get(owner, request);
-            } else {
-                return request.call();
+            final BitbucketTeam team = getTeam();
+            final String url = team.getLink("avatar");
+            if (url == null) {
+                return AvatarImage.EMPTY;
+            }
+
+            Callable<AvatarImage> request = () -> {
+                try {
+                    BufferedImage avatar = getImageRequest(url);
+                    return new AvatarImage(avatar, System.currentTimeMillis());
+                } catch (FileNotFoundException e) {
+                    LOGGER.log(Level.FINE, "Failed to get avatar for team {0} from URL: " + url,
+                            team.getName());
+                } catch (IOException e) {
+                    throw new IOException("I/O error when parsing response from URL: " + url, e);
+                }
+                return null;
+            };
+
+            try {
+                if (enableCache) {
+                    return cachedAvatar.get(owner, request);
+                } else {
+                    return request.call();
+                }
+            } catch (Exception ex) {
+                return null;
             }
         } catch (Exception ex) {
-            return null;
+            LOGGER.log(Level.FINE, "Unexpected exception while loading team avatar: "+ex.getMessage(), ex);
+            throw ex;
         }
+
     }
 
     /**
