@@ -133,6 +133,7 @@ public class BitbucketCloudApiClient implements BitbucketApi {
     private static final int API_RATE_LIMIT_CODE = 429;
     // Limit images to 16k
     private static final int MAX_AVATAR_LENGTH = 16384;
+    private static final int MAX_PAGE_LENGTH = 100;
     private static final PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
     private CloseableHttpClient client;
     private HttpClientContext context;
