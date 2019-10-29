@@ -686,7 +686,7 @@ public class BitbucketCloudApiClient implements BitbucketApi {
     public AvatarImage getTeamAvatar() throws IOException, InterruptedException {
         try {
             final BitbucketTeam team = getTeam();
-            final String url = team.getLink("avatar");
+            final String url = (team!=null) ? team.getLink("avatar") : null;
             if (url == null) {
                 return AvatarImage.EMPTY;
             }
