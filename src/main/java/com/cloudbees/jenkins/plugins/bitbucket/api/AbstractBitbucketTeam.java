@@ -82,16 +82,13 @@ public abstract class AbstractBitbucketTeam implements BitbucketTeam {
     @JsonIgnore
     public String getLink(String name) {
         if (links == null) {
-            LOGGER.info("NULL LINKS");
             return null;
         }
         List<BitbucketHref> hrefs = links.get(name);
         if (hrefs == null || hrefs.isEmpty()) {
-            LOGGER.info("no links named '"+name+"'");
             return null;
         }
         BitbucketHref href = hrefs.get(0);
-        LOGGER.info("href is '"+href+"'");
         return href == null ? null : href.getHref();
     }
 }

@@ -24,10 +24,9 @@
 package com.cloudbees.jenkins.plugins.bitbucket.client.repository;
 
 import com.cloudbees.jenkins.plugins.bitbucket.api.AbstractBitbucketTeam;
-import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketTeam;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class BitbucketCloudTeam extends AbstractBitbucketTeam implements BitbucketTeam {
+public class BitbucketCloudTeam extends AbstractBitbucketTeam {
 
     @JsonProperty("username")
     protected String name;
