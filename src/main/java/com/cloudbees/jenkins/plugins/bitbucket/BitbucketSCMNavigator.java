@@ -641,7 +641,6 @@ public class BitbucketSCMNavigator extends SCMNavigator {
             return result;
         }
 
-
         @Override
         public List<SCMTrait<? extends SCMTrait<?>>> getTraitsDefaults() {
             return Arrays.<SCMTrait<? extends SCMTrait<?>>>asList(
