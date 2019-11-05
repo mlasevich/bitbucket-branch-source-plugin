@@ -24,7 +24,6 @@
 
 package com.cloudbees.jenkins.plugins.bitbucket;
 
-
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApi;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApiFactory;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketAuthenticator;
@@ -38,7 +37,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.authentication.tokens.api.AuthenticationTokens;
 import jenkins.scm.api.metadata.AvatarMetadataAction;
-
 
 /**
  * Invisible property that retains information about Bitbucket team.

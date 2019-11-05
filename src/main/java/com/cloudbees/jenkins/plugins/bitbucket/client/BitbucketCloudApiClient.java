@@ -153,7 +153,6 @@ public class BitbucketCloudApiClient implements BitbucketApi {
         connectionManager.setSocketConfig(API_HOST, SocketConfig.custom().setSoTimeout(60 * 1000).build());
     }
 
-
     public static List<String> stats() {
         List<String> stats = new ArrayList<>();
         stats.add("Team: " + cachedTeam.stats().toString());
@@ -465,6 +464,7 @@ public class BitbucketCloudApiClient implements BitbucketApi {
     public List<BitbucketCloudBranch> getTags() throws IOException, InterruptedException {
         return getBranchesByRef("/refs/tags");
     }
+
     /**
      * {@inheritDoc}
      */
@@ -678,6 +678,7 @@ public class BitbucketCloudApiClient implements BitbucketApi {
             return null;
         }
     }
+
     /**
      * {@inheritDoc}
      */
@@ -717,7 +718,6 @@ public class BitbucketCloudApiClient implements BitbucketApi {
             LOGGER.log(Level.FINE, "Unexpected exception while loading team avatar: "+ex.getMessage(), ex);
             throw ex;
         }
-
     }
 
     /**

@@ -23,10 +23,6 @@
  */
 package com.cloudbees.jenkins.plugins.bitbucket.avatars;
 
-
-
-
-
 import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource.AvatarImage;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -93,25 +89,30 @@ public class AvatarCache implements UnprotectedRootAction {
      * Maximum concurrent requests to fetch images.
      */
     private static final int CONCURRENT_REQUEST_LIMIT = 4;
+
     /**
      * The cache of entries. Unused entries will be removed over time.
      */
     private final ConcurrentMap<String, CacheEntry> cache = new ConcurrentHashMap<String, CacheEntry>();
+
     /**
      * A background thread pool to refresh images.
      */
     private final ThreadPoolExecutor service = new ThreadPoolExecutor(CONCURRENT_REQUEST_LIMIT,
             CONCURRENT_REQUEST_LIMIT, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
             new NamingThreadFactory(new DaemonThreadFactory(), getClass().getName()));
+
     /**
      * The lock to ensure we prevent concurrent requests for the same URL.
      */
     private final Object serviceLock = new Object();
+
     /**
      * The iterator that searches for unused entries. The search is amortized over
      * every access.
      */
     private Iterator<Map.Entry<String, CacheEntry>> iterator = null;
+
     /**
      * The time this service was started (used as the last modified for generated
      * avatars.

@@ -31,6 +31,7 @@ import java.awt.image.BufferedImage;
  *
  */
 public interface AvatarCacheSource {
+
     /**
      * Holds Image and lastModified date
      */
