@@ -461,25 +461,30 @@ public class AvatarCache implements UnprotectedRootAction {
      * A cache entry.
      */
     private static class CacheEntry {
+
         /**
          * Source for avatar
          */
         private final AvatarCacheSource source;
+
         /**
          * The cached image or {@code null} if not retrieved yet.
          */
         @CheckForNull
         private BufferedImage image;
+
         /**
          * The last modified timestamp, comparable to
          * {@link System#currentTimeMillis()}.
          */
         private long lastModified;
+
         /**
          * The last accessed timestamp, comparable to
          * {@link System#currentTimeMillis()}, {@code -1L} signals never accessed.
          */
         private long lastAccessed = -1L;
+
         /**
          * The queued request to retrieve the image from the {@link #url}.
          */
