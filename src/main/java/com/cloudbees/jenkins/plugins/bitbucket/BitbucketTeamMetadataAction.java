@@ -27,8 +27,6 @@ package com.cloudbees.jenkins.plugins.bitbucket;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApi;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApiFactory;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketAuthenticator;
-import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCache;
-import com.cloudbees.jenkins.plugins.bitbucket.avatars.AvatarCacheSource;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,6 +35,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.authentication.tokens.api.AuthenticationTokens;
 import jenkins.scm.api.metadata.AvatarMetadataAction;
+import jenkins.scm.impl.avatars.AvatarCache;
+import jenkins.scm.impl.avatars.AvatarImage;
+import jenkins.scm.impl.avatars.AvatarImageSource;
 
 /**
  * Invisible property that retains information about Bitbucket team.
@@ -58,7 +59,7 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
         avatarSource = new BitbucketAvatarCacheSource(serverUrl, credentials, team);
     }
 
-    public static class BitbucketAvatarCacheSource implements AvatarCacheSource, Serializable {
+    public static class BitbucketAvatarCacheSource implements AvatarImageSource, Serializable {
         private static final long serialVersionUID = 1L;
         private final String serverUrl;
         private final StandardCredentials credentials;
@@ -87,7 +88,7 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
         }
 
         @Override
-        public String hashKey() {
+        public String getId() {
             return "" + serverUrl + "::" + repoOwner + "::" + (credentials != null ? credentials.getId() : "");
         }
 
@@ -102,7 +103,7 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
          */
         @Override
         public int hashCode() {
-            return Objects.hashCode(hashKey());
+            return Objects.hashCode(getId());
         }
 
         @Override
@@ -115,12 +116,12 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
             }
 
             BitbucketAvatarCacheSource that = (BitbucketAvatarCacheSource) o;
-            return this.hashKey().equals(that.hashKey());
+            return this.getId().equals(that.getId());
         }
 
         @Override
         public String toString() {
-            return "BitbucketAvatarSource(" + hashKey() + ")";
+            return "BitbucketAvatarSource(" + getId() + ")";
         }
     }
     /**
