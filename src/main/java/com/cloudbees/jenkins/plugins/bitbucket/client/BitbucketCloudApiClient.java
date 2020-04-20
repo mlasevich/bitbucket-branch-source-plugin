@@ -245,6 +245,12 @@ public class BitbucketCloudApiClient implements BitbucketApi {
             case GIT:
                 switch (protocol) {
                     case HTTP:
+                        if (authenticator != null) {
+                            String username = authenticator.getUserUri();
+                            if (!username.isEmpty()) {
+                                return "https://" + username + "@bitbucket.org/" + owner + "/" + repository + ".git";
+                            }
+                        }
                         return "https://bitbucket.org/" + owner + "/" + repository + ".git";
                     case SSH:
                         return "git@bitbucket.org:" + owner + "/" + repository + ".git";
@@ -299,6 +305,9 @@ public class BitbucketCloudApiClient implements BitbucketApi {
             }
             pullRequests.addAll(page.getValues());
         } while (page.getNext() != null);
+
+        // PRs with missing destination branch are invalid and should be ignored.
+        pullRequests.removeIf(pr -> pr.getDestination().getBranch() == null);
 
         for (BitbucketPullRequestValue pullRequest : pullRequests) {
             setupClosureForPRBranch(pullRequest);
@@ -422,6 +431,10 @@ public class BitbucketCloudApiClient implements BitbucketApi {
             return true;
         } else if (HttpStatus.SC_NOT_FOUND == status) {
             return false;
+        } else if (HttpStatus.SC_FORBIDDEN == status) {
+            // Needs to skip over the branch if there are permissions issues but let you know in the logs
+            LOGGER.log(Level.FINE, "You currently do not have permissions to pull from repo: {0} at branch {1}", new Object[]{repositoryName, branchOrHash});
+            return false;
         } else {
             throw new IOException("Communication error for url: " + path + " status code: " + status);
         }
@@ -475,9 +488,10 @@ public class BitbucketCloudApiClient implements BitbucketApi {
     }
 
     public List<BitbucketCloudBranch> getBranchesByRef(String nodePath) throws IOException, InterruptedException {
-        String url = UriTemplate.fromTemplate(REPO_URL_TEMPLATE + nodePath)
+        String url = UriTemplate.fromTemplate(REPO_URL_TEMPLATE + nodePath + "{?pagelen}")
                 .set("owner", owner)
                 .set("repo", repositoryName)
+                .set("pagelen", MAX_PAGE_LENGTH)
                 .expand();
         String response = getRequest(url);
         try {
