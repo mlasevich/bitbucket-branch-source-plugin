@@ -47,11 +47,28 @@ import org.kohsuke.stapler.QueryParameter;
  * Utility class for common code accessing credentials
  */
 class BitbucketCredentials {
-    private BitbucketCredentials() {
-        throw new IllegalAccessError("Utility class");
+
+    private final String serverUrl;
+    private final SCMSourceOwner context;
+    private final String id;
+
+    public BitbucketCredentials(@CheckForNull String serverUrl,
+                                @CheckForNull SCMSourceOwner context,
+                                @CheckForNull String id) {
+        this.serverUrl = serverUrl;
+        this.context = context;
+        this.id = id;
+
     }
 
-    @CheckForNull
+    public <T extends StandardCredentials> T credentials(@NonNull Class<T> type){
+        return lookupCredentials(serverUrl, context, id, type);
+    }
+
+    public StandardCredentials credentials(){
+        return credentials(StandardCredentials.class);
+    }
+
     static <T extends StandardCredentials> T lookupCredentials(@CheckForNull String serverUrl,
                                                                @CheckForNull SCMSourceOwner context,
                                                                @CheckForNull String id,

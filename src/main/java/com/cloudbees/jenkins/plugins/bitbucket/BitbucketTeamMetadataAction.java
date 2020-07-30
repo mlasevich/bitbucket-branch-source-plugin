@@ -54,19 +54,19 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
 
     private final BitbucketAvatarCacheSource avatarSource;
 
-    public BitbucketTeamMetadataAction(String serverUrl, StandardCredentials credentials, String team) {
-        avatarSource = new BitbucketAvatarCacheSource(serverUrl, credentials, team);
+    public BitbucketTeamMetadataAction(String serverUrl, BitbucketCredentials bbCredentials, String team) {
+        avatarSource = new BitbucketAvatarCacheSource(serverUrl, bbCredentials, team);
     }
 
     public static class BitbucketAvatarCacheSource implements AvatarCacheSource, Serializable {
         private static final long serialVersionUID = 1L;
         private final String serverUrl;
-        private final StandardCredentials credentials;
+        private final BitbucketCredentials bbCredentials;
         private final String repoOwner;
 
-        public BitbucketAvatarCacheSource(String serverUrl, StandardCredentials credentials, String repoOwner) {
+        public BitbucketAvatarCacheSource(String serverUrl, BitbucketCredentials bbCredentials, String repoOwner) {
             this.serverUrl = serverUrl;
-            this.credentials = credentials;
+            this.bbCredentials = bbCredentials;
             this.repoOwner = repoOwner;
             LOGGER.log(Level.INFO, "Created: {0}", this.toString());
         }
@@ -74,7 +74,7 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
         @Override
         public AvatarImage fetch() {
             BitbucketAuthenticator authenticator = AuthenticationTokens
-                    .convert(BitbucketAuthenticator.authenticationContext(serverUrl), credentials);
+                    .convert(BitbucketAuthenticator.authenticationContext(serverUrl), bbCredentials.credentials());
             BitbucketApi bitbucket = BitbucketApiFactory.newInstance(serverUrl, authenticator, repoOwner, null);
             try {
                 return bitbucket.getTeamAvatar();
@@ -88,6 +88,7 @@ public class BitbucketTeamMetadataAction extends AvatarMetadataAction {
 
         @Override
         public String hashKey() {
+            StandardCredentials credentials = bbCredentials.credentials();
             return "" + serverUrl + "::" + repoOwner + "::" + (credentials != null ? credentials.getId() : "");
         }
 

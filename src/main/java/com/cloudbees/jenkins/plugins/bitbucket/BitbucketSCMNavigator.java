@@ -517,12 +517,12 @@ public class BitbucketSCMNavigator extends SCMNavigator {
         // TODO when we have support for trusted events, use the details from event if event was from trusted source
         listener.getLogger().printf("Looking up team details of %s...%n", getRepoOwner());
         List<Action> result = new ArrayList<>();
-        StandardCredentials credentials = BitbucketCredentials.lookupCredentials(
+        BitbucketCredentials bbCredentials = new BitbucketCredentials(
                 serverUrl,
                 owner,
-                credentialsId,
-                StandardCredentials.class
-        );
+                credentialsId
+                );
+        StandardCredentials credentials = bbCredentials.credentials(StandardCredentials.class);
 
         if (credentials == null) {
             listener.getLogger().format("Connecting to %s with no credentials, anonymous access%n",
@@ -551,7 +551,7 @@ public class BitbucketSCMNavigator extends SCMNavigator {
                     null,
                     teamUrl
             ));
-            result.add(new BitbucketTeamMetadataAction(serverUrl, credentials, team.getName()));
+            result.add(new BitbucketTeamMetadataAction(serverUrl, bbCredentials, team.getName()));
             result.add(new BitbucketLink("icon-bitbucket-logo", teamUrl));
             listener.getLogger().printf("Team: %s%n", HyperlinkNote.encodeTo(teamUrl, teamDisplayName));
         } else {
