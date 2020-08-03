@@ -32,12 +32,15 @@ import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.model.Item;
 import hudson.model.Queue;
 import hudson.model.queue.Tasks;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.io.Serializable;
 import jenkins.authentication.tokens.api.AuthenticationTokens;
+import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMSourceOwner;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -46,23 +49,30 @@ import org.kohsuke.stapler.QueryParameter;
 /**
  * Utility class for common code accessing credentials
  */
-class BitbucketCredentials {
+class BitbucketCredentials implements Serializable {
 
+    private static final long serialVersionUID = 8439574104406702534L;
     private final String serverUrl;
-    private final SCMSourceOwner context;
+    private final String contextName;
+    //private final SCMSourceOwner context;
     private final String id;
 
     public BitbucketCredentials(@CheckForNull String serverUrl,
-                                @CheckForNull SCMSourceOwner context,
+                                @CheckForNull String contextName,
                                 @CheckForNull String id) {
         this.serverUrl = serverUrl;
-        this.context = context;
+        this.contextName = contextName;
         this.id = id;
 
     }
 
     public <T extends StandardCredentials> T credentials(@NonNull Class<T> type){
-        return lookupCredentials(serverUrl, context, id, type);
+        Jenkins instance = Jenkins.getInstanceOrNull();
+        if (instance == null) {
+            return null;
+        }
+        Item context = instance.getItemByFullName(contextName);
+        return lookupCredentials(serverUrl,context, id, type);
     }
 
     public StandardCredentials credentials(){
@@ -70,7 +80,7 @@ class BitbucketCredentials {
     }
 
     static <T extends StandardCredentials> T lookupCredentials(@CheckForNull String serverUrl,
-                                                               @CheckForNull SCMSourceOwner context,
+                                                               @CheckForNull Item context,
                                                                @CheckForNull String id,
                                                                @NonNull Class<T> type) {
         if (StringUtils.isNotBlank(id) && context != null) {

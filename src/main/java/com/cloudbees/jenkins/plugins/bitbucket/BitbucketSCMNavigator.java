@@ -519,7 +519,7 @@ public class BitbucketSCMNavigator extends SCMNavigator {
         List<Action> result = new ArrayList<>();
         BitbucketCredentials bbCredentials = new BitbucketCredentials(
                 serverUrl,
-                owner,
+                owner.getFullName(),
                 credentialsId
                 );
         StandardCredentials credentials = bbCredentials.credentials(StandardCredentials.class);
